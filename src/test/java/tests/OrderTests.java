@@ -5,6 +5,7 @@ import io.qameta.allure.Step;
 import io.restassured.response.Response;
 import model.Order;
 import model.User;
+import org.junit.Before;
 import org.junit.Test;
 import services.OrderClient;
 import services.UserClient;
@@ -12,6 +13,7 @@ import utils.OrderGenerator;
 import utils.UserGenerator;
 
 
+import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 public class OrderTests extends BaseTest {
@@ -19,14 +21,22 @@ public class OrderTests extends BaseTest {
     UserClient userClient = new UserClient();
     OrderClient orderClient = new OrderClient();
 
-    @Test
-    public void createOrderWithAuth() {
-        User user = UserGenerator.createUser();
+    private User user;
+    private String token;
+
+    @Before
+    public void setUpUser() {
+        user = UserGenerator.createUser();
         userClient.createUser(user);
 
-        String token = userClient.loginUser(user)
-                .then().extract().path("accessToken");
+        token = userClient.loginUser(user)
+                .then()
+                .extract()
+                .path("accessToken");
+    }
 
+    @Test
+    public void createOrderWithAuth() {
         Order order = OrderGenerator.createOrder();
         createOrderWithAuthStep(order, token);
     }
@@ -35,22 +45,18 @@ public class OrderTests extends BaseTest {
     public void createOrderWithAuthStep(Order order, String token) {
         Response response = orderClient.createOrderWithAuth(order, token);
 
-        response.then().statusCode(200)
+        response.then().statusCode(SC_OK)
                 .body("success", equalTo(true));
     }
 
     @Test
     public void createOrderWithoutAuth() {
         Order order = OrderGenerator.createOrder();
-        createOrderWithoutAuthStep(order);
-    }
 
-    @Step("Создание заказа без авторизации")
-    public void createOrderWithoutAuthStep(Order order) {
         Response response = orderClient.createOrderWithoutAuth(order);
 
-        response.then().statusCode(200)
-        .body("success", equalTo(true));
+        response.then().statusCode(SC_OK)
+                .body("success", equalTo(true));
     }
 
     @Test
@@ -63,7 +69,7 @@ public class OrderTests extends BaseTest {
     public void createOrderWithIngredientsStep(Order order) {
         Response response = orderClient.createOrderWithoutAuth(order);
 
-        response.then().statusCode(200)
+        response.then().statusCode(SC_OK)
                 .body("success", equalTo(true));
     }
 
@@ -77,7 +83,7 @@ public class OrderTests extends BaseTest {
     public void createOrderWithoutIngredientsStep(Order order) {
         Response response = orderClient.createOrderWithoutAuth(order);
 
-        response.then().statusCode(400)
+        response.then().statusCode(SC_BAD_REQUEST)
                 .body("success", equalTo(false))
                 .body("message", equalTo("Ingredient ids must be provided"));
     }
@@ -92,6 +98,6 @@ public class OrderTests extends BaseTest {
     public void createOrderWithWrongHashStep(Order order) {
         Response response = orderClient.createOrderWithoutAuth(order);
 
-        response.then().statusCode(500);
+        response.then().statusCode(SC_INTERNAL_SERVER_ERROR);
     }
 }

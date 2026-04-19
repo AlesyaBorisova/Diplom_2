@@ -8,9 +8,10 @@ import org.junit.Test;
 import services.UserClient;
 import utils.UserGenerator;
 
+import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 
-public class UserTests extends BaseTest {
+public class RegisterUserTests extends BaseTest {
 
     UserClient userClient = new UserClient();
 
@@ -24,7 +25,7 @@ public class UserTests extends BaseTest {
     public void createUserStep(User user) {
         Response response = userClient.createUser(user);
 
-        response.then().statusCode(200)
+        response.then().statusCode(SC_OK)
                 .body("success", equalTo(true));
 
     }
@@ -41,7 +42,7 @@ public class UserTests extends BaseTest {
         Response response = userClient.createUser(user);
 
         response.then()
-                .statusCode(403)
+                .statusCode(SC_FORBIDDEN)
                 .body("success", equalTo(false))
                 .body("message", equalTo("User already exists"));
 
@@ -58,44 +59,44 @@ public class UserTests extends BaseTest {
         Response response = userClient.createUser(user);
 
         response.then()
-                .statusCode(403)
+                .statusCode(SC_FORBIDDEN)
                 .body("success", equalTo(false))
                 .body("message", equalTo("Email, password and name are required fields"));
     }
 
-
     @Test
-    public void loginUserTest() {
-        User user = new User("test" + System.currentTimeMillis() + "@mail.com", "1234", "name");
-        userClient.createUser(user);
-        loginUserStep(user);
-
+    public void createUserWithoutEmail() {
+        User user = UserGenerator.createUserWithoutEmail();
+        createUserWithoutEmailStep(user);
     }
 
-    @Step("Вход под существующим пользователем")
-    public void loginUserStep(User user) {
-        Response response = userClient.loginUser(user);
+    @Step("Создание пользователя без email")
+    public void createUserWithoutEmailStep(User user) {
+        Response response = userClient.createUser(user);
 
         response.then()
-                .statusCode(200)
-                .body("success", equalTo(true));
-    }
-
-    @Test
-    public void loginWithWrongUserTest() {
-
-        User user = UserGenerator.createWrongUser();
-        loginWithWrongUserStep(user);
-    }
-
-    @Step("Вход с неверным логином и паролем")
-    public void loginWithWrongUserStep(User user) {
-        Response response = userClient.loginUser(user);
-
-        response.then()
-                .statusCode(401)
+                .statusCode(SC_FORBIDDEN)
                 .body("success", equalTo(false))
-                .body("message", equalTo("email or password are incorrect"));
+                .body("message", equalTo("Email, password and name are required fields"));
+    }
+
+    @Test
+    public void createUserWithoutName() {
+        User user = UserGenerator.createUserWithoutName();
+        createUserWithoutNameStep(user);
+    }
+
+    @Step("Создание пользователя без имени")
+    public void createUserWithoutNameStep(User user) {
+        Response response = userClient.createUser(user);
+
+        response.then()
+                .statusCode(SC_FORBIDDEN)
+                .body("success", equalTo(false))
+                .body("message", equalTo("Email, password and name are required fields"));
     }
 }
+
+
+
 
