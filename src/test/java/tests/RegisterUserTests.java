@@ -51,43 +51,23 @@ public class RegisterUserTests extends BaseTest {
     @Test
     public void createUserWithoutPassword() {
         User user = UserGenerator.createUserWithoutPassword();
-        createUserWithoutPasswordStep(user);
-    }
-
-    @Step("Создание пользователя без пароля")
-    public void createUserWithoutPasswordStep(User user) {
-        Response response = userClient.createUser(user);
-
-        response.then()
-                .statusCode(SC_FORBIDDEN)
-                .body("success", equalTo(false))
-                .body("message", equalTo("Email, password and name are required fields"));
+        createUserWithInvalidDataStep(user);
     }
 
     @Test
     public void createUserWithoutEmail() {
         User user = UserGenerator.createUserWithoutEmail();
-        createUserWithoutEmailStep(user);
-    }
-
-    @Step("Создание пользователя без email")
-    public void createUserWithoutEmailStep(User user) {
-        Response response = userClient.createUser(user);
-
-        response.then()
-                .statusCode(SC_FORBIDDEN)
-                .body("success", equalTo(false))
-                .body("message", equalTo("Email, password and name are required fields"));
+        createUserWithInvalidDataStep(user);
     }
 
     @Test
     public void createUserWithoutName() {
         User user = UserGenerator.createUserWithoutName();
-        createUserWithoutNameStep(user);
+        createUserWithInvalidDataStep(user);
     }
 
-    @Step("Создание пользователя без имени")
-    public void createUserWithoutNameStep(User user) {
+    @Step("Создание пользователя с некорректными данными: email={user.email}, password={user.password}, name={user.name}")
+    public void createUserWithInvalidDataStep(User user) {
         Response response = userClient.createUser(user);
 
         response.then()

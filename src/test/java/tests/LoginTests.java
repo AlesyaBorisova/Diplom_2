@@ -46,11 +46,11 @@ public class LoginTests extends BaseTest {
                 user.getName()
         );
 
-        loginWithWrongEmailStep(wrongEmailUser);
+        loginWithInvalidDataStep(wrongEmailUser);
     }
 
-    @Step("Логин с неверным email")
-    public void loginWithWrongEmailStep(User user) {
+    @Step("Логин с неверными данными: email={user.email}, password={user.password}")
+    public void loginWithInvalidDataStep(User user) {
         Response response = userClient.loginUser(user);
 
         response.then()
@@ -67,17 +67,8 @@ public class LoginTests extends BaseTest {
                 user.getName()
         );
 
-        loginWithWrongPasswordStep(wrongPasswordUser);
+        loginWithInvalidDataStep(wrongPasswordUser);
     }
 
-    @Step("Логин с неверным паролем")
-    public void loginWithWrongPasswordStep(User user) {
-        Response response = userClient.loginUser(user);
-
-        response.then()
-                .statusCode(SC_UNAUTHORIZED)
-                .body("success", equalTo(false))
-                .body("message", equalTo("email or password are incorrect"));
-    }
 }
 
